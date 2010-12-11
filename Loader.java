@@ -5,6 +5,7 @@ import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Arrays;
 
 public class Loader extends OutputStream {
 
@@ -13,11 +14,19 @@ public class Loader extends OutputStream {
     private String mainclass;
 
     public static void main(String[] args) throws Exception {
-        Loader l = new Loader("http://minecraft.net/download/Minecraft.jar", "net.minecraft.LauncherFrame");
-        l.load();
+        Loader l = new Loader("file:Minecraft.jar", "net.minecraft.LauncherFrame");
+        l.load(args);
     }
 
-    public void load() throws Exception {
+    public void load(String[] args) throws Exception {
+        scriptwindow.addline("D args: " + Arrays.toString(args));
+        scriptwindow.addline("D os.name: " + System.getProperty("os.name"));
+        scriptwindow.addline("D user.home: " + System.getProperty("user.home"));
+        scriptwindow.addline("D %APPDATA%: " + System.getenv("APPDATA"));
+        scriptwindow.addline("D $HOME: " + System.getenv("HOME"));
+        scriptwindow.addline("D $USER: " + System.getenv("USER"));
+        //".minecraft";
+
         scriptwindow.addline("= Loading: " + url);
         URLClassLoader cl = new URLClassLoader(new URL[]{new URL("jar:" + url + "!/")});
         Class cls = cl.loadClass(mainclass);
@@ -108,5 +117,5 @@ public class Loader extends OutputStream {
             last += (char)b;
         }
     }
-    
+
 }
