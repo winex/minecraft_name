@@ -11,6 +11,7 @@ public class ScriptWindow extends Frame implements KeyListener, ActionListener {
     private JTextField input;
     private JTextArea output;
     private JScrollPane scrollPane;
+    private String playerName;
 
     private ArrayList<String> history = new ArrayList<String>();
     private int historyIndex = 0;
@@ -43,6 +44,10 @@ public class ScriptWindow extends Frame implements KeyListener, ActionListener {
         output.setCaretPosition(output.getDocument().getLength());
     }
 
+    public void nameSetting(String name) {
+        playerName = name;
+    }
+
     public boolean addObject(String name, Object obj, boolean cl) {
         try {
             interpreter.set(name, obj);
@@ -50,6 +55,7 @@ public class ScriptWindow extends Frame implements KeyListener, ActionListener {
             if (cl) {
                 interpreter.setClassLoader(obj.getClass().getClassLoader());
                 addline("% Classloader: " + name);
+                interpreter.eval("game.i.b = \"" + playerName + "\"");
             }
             return true;
         } catch (Exception e) {

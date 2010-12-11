@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
+import javax.swing.JOptionPane;
 
 public class Loader extends OutputStream {
 
@@ -101,7 +102,10 @@ public class Loader extends OutputStream {
         PrintStream p = new PrintStream(this);
         //System.setErr(p);
         //System.setOut(p);
-        scriptwindow = new ScriptWindow("Minecraft Hax by eXemplar");
+        String name = JOptionPane.showInputDialog(null, "Minecraft Name:", "Input Name");
+        System.out.println(name);
+        scriptwindow = new ScriptWindow("Minecraft Name Changer by NanoEntity, modified code from eXemplar, updated by winex");
+        scriptwindow.nameSetting(name);
         scriptwindow.addObject("loader", this, false);
         scriptwindow.setVisible(true);
     }
