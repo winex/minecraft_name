@@ -39,7 +39,7 @@ public class Loader extends OutputStream {
         String dirs[] = {
             System.getProperty("user.home") + "/.",
             System.getProperty("user.home") + "/Library/Application Support/",
-            System.getenv("APPDATA") + "/.",
+            System.getenv("APPDATA") + System.getProperty("file.separator") + ".",
         };
         String s = null;
 
