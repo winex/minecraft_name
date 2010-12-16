@@ -5,6 +5,11 @@ import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import javax.swing.JOptionPane;
 
 public class Loader extends OutputStream {
@@ -12,10 +17,40 @@ public class Loader extends OutputStream {
     private ScriptWindow scriptwindow;
     private String url;
     private String mainclass;
+    private String name;
+
+    public String dir_install;
 
     public static void main(String[] args) throws Exception {
-        Loader l = new Loader("file:Minecraft.jar", "net.minecraft.LauncherFrame");
+        String dir = searchInstallDir("minecraft");
+        if (dir == null)
+        {
+            String err = "Failed to find installation directory!";
+            System.err.println(err);
+            JOptionPane.showMessageDialog(null, err, "Error", JOptionPane.ERROR_MESSAGE);
+            System.exit(-1);
+        }
+
+        Loader l = new Loader("file:" + dir + System.getProperty("file.separator") + "Minecraft.jar", "net.minecraft.LauncherFrame", dir);
         l.load();
+    }
+
+    public static String searchInstallDir(String appname) throws Exception {
+        String dirs[] = {
+            System.getProperty("user.home") + "/.",
+            System.getProperty("user.home") + "/Library/Application Support/",
+            System.getenv("APPDATA") + "/.",
+        };
+        String s = null;
+
+        for (int i = 0; i < dirs.length; i++)
+        {
+            s = dirs[i] + appname;
+            File path = new File(s);
+            if (path.isDirectory())
+                return s;
+        }
+        return null;
     }
 
     public void load() throws Exception {
@@ -87,9 +122,11 @@ public class Loader extends OutputStream {
         scriptwindow.addObject("game", field.get(object), true);
     }
 
-    public Loader(String url, String mainclass) throws Exception {
+    public Loader(String url, String mainclass, String dir) throws Exception {
         this.url = url;
         this.mainclass = mainclass;
+        this.dir_install = dir;
+
         PrintStream p = new PrintStream(this);
         //System.setErr(p);
         //System.setOut(p);
@@ -104,7 +141,44 @@ public class Loader extends OutputStream {
         scriptwindow.addline("D $HOME: " + System.getenv("HOME"));
         scriptwindow.addline("D $USER: " + System.getenv("USER"));
 
-        String name = JOptionPane.showInputDialog(null, "Minecraft Name:", "Input Name");
+        String cfg = dir + "/" + "name.txt";
+        String name = null;
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(new FileReader(cfg));
+            name = br.readLine();
+        }
+        catch (IOException e) {
+            System.out.println(e.getMessage());
+            scriptwindow.addline("E " + e.getMessage());
+        }
+        finally {
+            if (br != null) { br.close(); }
+        }
+
+        if (name == null)
+            name = "";
+
+        String namein = JOptionPane.showInputDialog(null, "Minecraft Name:", name);
+        if (namein == null)
+            System.exit(-1);
+
+        if (!namein.equals(name))
+        {
+            name = namein;
+            BufferedWriter bw = null;
+            try {
+                bw = new BufferedWriter(new FileWriter(cfg));
+                bw.write(namein + "\n");
+            }
+            catch (IOException e) {
+                System.out.println(e.getMessage());
+                scriptwindow.addline("E " + e.getMessage());
+            }
+            finally {
+                if (bw != null) { bw.close(); }
+            }
+        }
         scriptwindow.nameSetting(name);
     }
 
