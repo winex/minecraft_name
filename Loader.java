@@ -143,7 +143,7 @@ public class Loader extends OutputStream {
         Properties props_cur = new Properties();
 
         props_cur.setProperty("name", "");
-        props_cur.setProperty("hidescriptwindow", "false");
+        props_cur.setProperty("hidescriptwindow", "true");
         props_cur.setProperty("noprompt", "false");
 
         // copy props_cur to have all keys (w/o defaults)
