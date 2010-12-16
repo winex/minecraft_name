@@ -6,10 +6,9 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.Properties;
 import javax.swing.JOptionPane;
 
 public class Loader extends OutputStream {
@@ -17,7 +16,6 @@ public class Loader extends OutputStream {
     private ScriptWindow scriptwindow;
     private String url;
     private String mainclass;
-    private String name;
 
     public String dir_install;
 
@@ -133,7 +131,6 @@ public class Loader extends OutputStream {
 
         scriptwindow = new ScriptWindow("Minecraft Name Changer by NanoEntity, modified code from eXemplar, updated by winex");
         scriptwindow.addObject("loader", this, false);
-        scriptwindow.setVisible(true);
 
         scriptwindow.addline("D os.name: " + System.getProperty("os.name"));
         scriptwindow.addline("D user.home: " + System.getProperty("user.home"));
@@ -141,45 +138,68 @@ public class Loader extends OutputStream {
         scriptwindow.addline("D $HOME: " + System.getenv("HOME"));
         scriptwindow.addline("D $USER: " + System.getenv("USER"));
 
-        String cfg = dir + "/" + "name.txt";
-        String name = null;
-        BufferedReader br = null;
+        String cfg = dir + System.getProperty("file.separator") + "name.txt";
+        Properties props_new = new Properties();
+        Properties props_cur = new Properties();
+
+        props_cur.setProperty("name", "");
+        props_cur.setProperty("hidescriptwindow", "false");
+        props_cur.setProperty("noprompt", "false");
+
+        // copy props_cur to have all keys (w/o defaults)
+        props_new.putAll(props_cur);
+
         try {
-            br = new BufferedReader(new FileReader(cfg));
-            name = br.readLine();
+            props_new.load(new FileInputStream(cfg));
         }
         catch (IOException e) {
             System.out.println(e.getMessage());
             scriptwindow.addline("E " + e.getMessage());
         }
-        finally {
-            if (br != null) { br.close(); }
+
+        for (String k: props_new.stringPropertyNames())
+        {
+            if (props_cur.containsKey(k))
+                continue;
+
+            scriptwindow.addline("E uknown option: '" + k + "'");
+            props_new.remove(k);
+       }
+
+        if (props_new.getProperty("name") == null)
+            props_new.setProperty("name", "");
+
+        // copy props_new to track changes
+        props_cur.putAll(props_new);
+
+
+        if (!props_new.getProperty("noprompt").equals("true"))
+        {
+            String s = props_cur.getProperty("name");
+            s = JOptionPane.showInputDialog(null, "Minecraft Name:", s);
+            if (s == null)
+                System.exit(-1);
+            props_new.setProperty("name", s);
         }
 
-        if (name == null)
-            name = "";
+        scriptwindow.setVisible(!props_new.getProperty("hidescriptwindow").equals("true"));
 
-        String namein = JOptionPane.showInputDialog(null, "Minecraft Name:", name);
-        if (namein == null)
-            System.exit(-1);
 
-        if (!namein.equals(name))
+        // save props if changed
+        if (!props_new.get("name").equals(props_cur.get("name")) ||
+            !props_new.get("hidescriptwindow").equals(props_cur.get("hidescriptwindow")) ||
+            !props_new.get("noprompt").equals(props_cur.get("noprompt")) )
         {
-            name = namein;
-            BufferedWriter bw = null;
             try {
-                bw = new BufferedWriter(new FileWriter(cfg));
-                bw.write(namein + "\n");
+                props_new.store(new FileOutputStream(cfg), null);
             }
             catch (IOException e) {
                 System.out.println(e.getMessage());
                 scriptwindow.addline("E " + e.getMessage());
             }
-            finally {
-                if (bw != null) { bw.close(); }
-            }
         }
-        scriptwindow.nameSetting(name);
+
+        scriptwindow.nameSetting(props_new.getProperty("name"));
     }
 
     private String last = "";
