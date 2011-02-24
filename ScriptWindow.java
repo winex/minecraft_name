@@ -57,7 +57,7 @@ public class ScriptWindow extends Frame implements KeyListener, ActionListener {
             if (cl) {
                 interpreter.setClassLoader(obj.getClass().getClassLoader());
                 addline("% Classloader: " + name);
-                interpreter.eval("game.i.b = \"" + playerName + "\"");
+                interpreter.eval("game.j.b = \"" + playerName + "\"");
             }
             return true;
         } catch (Exception e) {
