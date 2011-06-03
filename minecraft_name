@@ -1,0 +1,59 @@
+#!/bin/bash
+
+#
+# start minecraft using name.txt (or name variable below) as player name
+#
+# compatible with "minecraft name changer improved"
+# see: https://github.com/winex/minecraft_name
+#
+
+
+# specify your name here if you don't want name.txt to be read/created
+name=
+
+# prefix command (such as mumble-overlay, taskset, startx or any combination)
+#   ex: prefix_cmd=mumble-overlay
+#       prefix_cmd="taskset -c 1 mumble-overlay"
+#
+prefix_cmd=
+
+# additional java options
+#   ex: java_opts="-Xms512M -Xmx1024M"
+java_opts=
+
+# full path to minecraft directory
+mcdir=$HOME/.minecraft
+
+
+###############################################################################
+
+# read config
+cfg=$mcdir/name.txt
+if [ -z "$name" ]; then
+	. "$cfg"
+fi
+
+# ask user for desired name
+if [ -z "$name" ]; then
+	while [ -z "$name" ]; do
+		echo -n "Enter your name: "
+		read name
+	done
+
+	echo "$cfg: updating..."
+	if grep -qs '^name=' "$cfg"; then
+		sed -i "s/^name=.*\$/name=$name/" "$cfg"
+	else
+		echo "name=$name" >>"$cfg"
+	fi
+fi
+
+# remove spaces
+name="${name// /}"
+
+# start minecraft
+cd "$mcdir"
+$prefix_cmd java $java_opts \
+	-cp bin/minecraft.jar:bin/lwjgl.jar:bin/lwjgl_util.jar:bin/jinput.jar \
+	-Djava.library.path=bin/natives \
+	net.minecraft.client.Minecraft "$name"
